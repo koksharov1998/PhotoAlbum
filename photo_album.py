@@ -75,7 +75,11 @@ class PhotoAlbum(QWidget):
         button_create_new_album.move(700, 60)
         button_create_new_album.clicked.connect(self.create_new_album)
 
-        # self.show_all(self.directory)
+        d, fileeee, l = self.show_all(self.directory)
+        print(d)
+        for e in l:
+            print(e)
+
         self.show()
 
     def get_new_name_of_album(self, text):
@@ -103,8 +107,9 @@ class PhotoAlbum(QWidget):
         else:
             self.counter = self.counter % len(self.files)
             self.load_image(self.directory + self.files[self.counter])
-    '''
+
     def show_all(self, directory, iDirs=0, iFiles=0):
+        lisss = []
         for file in os.listdir(directory):
             # full pathname
             file = os.path.join(directory, file)
@@ -112,13 +117,14 @@ class PhotoAlbum(QWidget):
                 # if directories
                 print('[' + file + ']')
                 iDirs += 1
-                iDirs, iFiles = self.show_all(self, file, iDirs, iFiles)
+                iDirs, iFiles, l2 = self.show_all(file, iDirs, iFiles)
             else:
                 # else files
+                lisss.append(file)
                 print(' ' + file)
                 iFiles += 1
-        return iDirs, iFiles
-    '''
+        return iDirs, iFiles, lisss
+
 
 
     def change_directory(self):
