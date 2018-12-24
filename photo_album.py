@@ -1,10 +1,10 @@
 import os
-import sys
 import shutil
+import sys
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon, QPixmap
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QFileDialog, QPushButton
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QFileDialog, QPushButton, QLineEdit
 
 
 class PhotoAlbum(QWidget):
@@ -22,8 +22,6 @@ class PhotoAlbum(QWidget):
         while self.album in os.listdir(self.directory):
             i += 1
             self.album = 'New Album (' + str(i) + ')'
-        self.album = './images/' + self.album
-        os.mkdir(self.album)
         self.counter = 0
         self.files = []
         files = os.listdir(self.directory)
@@ -60,18 +58,38 @@ class PhotoAlbum(QWidget):
         button_delete.move(400, 20)
         button_delete.clicked.connect(self.delete)
 
+        self.line_name_of_photo = QLineEdit(self)
+        self.line_name_of_photo.move(550, 30)
+        self.line_name_of_photo.setText(self.files[self.counter])
+
         button_add_to_current_album = QPushButton('Add to album', self)
-        button_add_to_current_album.move(550, 20)
+        button_add_to_current_album.move(550, 60)
         button_add_to_current_album.clicked.connect(self.add_to_current_album)
 
+        line_name_of_album = QLineEdit(self)
+        line_name_of_album.move(700, 30)
+        line_name_of_album.setText(self.album)
+        line_name_of_album.textChanged[str].connect(self.get_new_name_of_album)
+
+        button_create_new_album = QPushButton('Create a new album', self)
+        button_create_new_album.move(700, 60)
+        button_create_new_album.clicked.connect(self.create_new_album)
+
+        # self.show_all(self.directory)
         self.show()
+
+    def get_new_name_of_album(self, text):
+        self.album = text
+
+    def create_new_album(self):
+        if not './images/' + self.album in os.listdir(self.directory):
+            os.mkdir('./images/' + self.album)
 
     def add_to_current_album(self):
         if len(self.files) == 0:
             return
-        print(self.directory + self.files[self.counter])
-        print(self.album)
-        shutil.copy(self.directory + self.files[self.counter], self.album)
+        shutil.copy(self.directory + self.files[self.counter], './images/' + self.album)
+        os.rename('./images/' + self.album + '/' + self.files[self.counter], './images/' + self.album + '/' + self.line_name_of_photo.text())
         return
 
     def delete(self):
@@ -85,6 +103,23 @@ class PhotoAlbum(QWidget):
         else:
             self.counter = self.counter % len(self.files)
             self.load_image(self.directory + self.files[self.counter])
+    '''
+    def show_all(self, directory, iDirs=0, iFiles=0):
+        for file in os.listdir(directory):
+            # full pathname
+            file = os.path.join(directory, file)
+            if os.path.isdir(file):
+                # if directories
+                print('[' + file + ']')
+                iDirs += 1
+                iDirs, iFiles = self.show_all(self, file, iDirs, iFiles)
+            else:
+                # else files
+                print(' ' + file)
+                iFiles += 1
+        return iDirs, iFiles
+    '''
+
 
     def change_directory(self):
         directory = QFileDialog.getExistingDirectory(self)
@@ -130,6 +165,7 @@ class PhotoAlbum(QWidget):
         pixmap = QPixmap(file_name)
         pixmap = pixmap.scaled(pixmap.width() // 2, pixmap.height() // 2)
         self.label.setPixmap(pixmap)
+        self.line_name_of_photo.setText(self.files[self.counter])
 
 
 def main():
