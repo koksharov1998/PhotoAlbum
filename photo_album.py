@@ -82,7 +82,9 @@ class PhotoAlbum(QWidget):
         self.show()
 
     def create_thumbnails(self):
-        self.thumbnails_window = ThumbnailsWindow(self.album, self.get_all_photo('./images/' + self.album + '/'))
+        if not self.album in os.listdir('./images/'):
+            return
+        self.thumbnails_window = ThumbnailsWindow(self.album, self.get_all_photo('./images/' + self.album + '/', []))
         self.thumbnails_window.show()
 
 
