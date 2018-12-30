@@ -4,7 +4,7 @@ import sys
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon, QPixmap
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QFileDialog, QPushButton, QLineEdit, QComboBox, QListWidget
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QFileDialog, QPushButton, QLineEdit, QListWidget
 
 from thumbnails_window import ThumbnailsWindow
 
@@ -26,6 +26,7 @@ class PhotoAlbum(QWidget):
             self.album = 'New Album (' + str(i) + ')'
         self.counter = 0
         self.files = self.get_all_photo(self.directory)
+        self.search_word = ''
         self.initUI()
 
     def initUI(self):
@@ -78,15 +79,45 @@ class PhotoAlbum(QWidget):
         self.list_of_files.move(900, 600)
         self.list_of_files.itemClicked.connect(self.load_image_from_list)
 
+        search_line = QLineEdit(self)
+        search_line.move(850, 200)
+        search_line.textChanged[str].connect(self.get_new_search_word)
+
+        button_search = QPushButton('Search', self)
+        button_search.move(870, 230)
+        button_search.clicked.connect(self.search)
+
         self.load_image()
         self.show()
+
+    def search(self):
+        new_files = []
+        for file in self.files:
+            temp_file_name = file.replace('\\', '/')
+            if temp_file_name.split('/')[-1].find(self.search_word) != -1:
+                print(file)
+                new_files.append(file)
+        self.files = new_files
+        self.counter = 0
+        if len(self.files) == 0:
+            self.list_of_files.hide()
+            self.label.hide()
+            self.line_name_of_photo.setText('')
+        else:
+            self.list_of_files.clear()
+            self.list_of_files.addItems(self.files)
+            self.list_of_files.show()
+            self.load_image()
+            self.label.show()
+
+    def get_new_search_word(self, text):
+        self.search_word = text
 
     def create_thumbnails(self):
         if not self.album in os.listdir('./images/'):
             return
         self.thumbnails_window = ThumbnailsWindow(self.album, self.get_all_photo('./images/' + self.album + '/', []))
         self.thumbnails_window.show()
-
 
     def load_image_from_list(self):
         self.counter = self.list_of_files.currentRow()
