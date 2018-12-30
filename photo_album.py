@@ -1,10 +1,11 @@
 import os
 import shutil
 import sys
+from datetime import datetime
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon, QPixmap
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QFileDialog, QPushButton, QLineEdit, QListWidget
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QFileDialog, QPushButton, QLineEdit, QListWidget, QComboBox
 
 from thumbnails_window import ThumbnailsWindow
 
@@ -14,7 +15,7 @@ class PhotoAlbum(QWidget):
         super().__init__()
         self.left = 100
         self.top = 100
-        self.width = 1500
+        self.width = 1600
         self.height = 900
         self.title = 'Photo Album'
         self.icon = 'icon.png'
@@ -34,7 +35,7 @@ class PhotoAlbum(QWidget):
         self.setWindowTitle(self.title)
         self.setWindowIcon(QIcon(self.icon))
         self.label = QLabel(self)
-        self.label.setGeometry(50, 50, self.width - 50, self.height - 50)
+        self.label.setGeometry(50, 100, 900, 750)
 
         button_next = QPushButton('Next', self)
         button_next.move(120, 20)
@@ -53,14 +54,14 @@ class PhotoAlbum(QWidget):
         button_delete.clicked.connect(self.delete)
 
         self.line_name_of_photo = QLineEdit(self)
-        self.line_name_of_photo.move(550, 30)
+        self.line_name_of_photo.move(550, 20)
 
         button_add_to_current_album = QPushButton('Add to album', self)
         button_add_to_current_album.move(550, 60)
         button_add_to_current_album.clicked.connect(self.add_to_current_album)
 
         line_name_of_album = QLineEdit(self)
-        line_name_of_album.move(700, 30)
+        line_name_of_album.move(700, 20)
         line_name_of_album.setText(self.album)
         line_name_of_album.textChanged[str].connect(self.get_new_name_of_album)
 
@@ -69,22 +70,27 @@ class PhotoAlbum(QWidget):
         button_create_new_album.clicked.connect(self.create_new_album)
 
         button_short_look = QPushButton('Look Album', self)
-        button_short_look.move(860, 50)
+        button_short_look.move(900, 50)
         button_short_look.clicked.connect(self.create_thumbnails)
         self.thumbnails_window = None
 
         self.list_of_files = QListWidget(self)
         self.list_of_files.addItems(self.files)
         self.list_of_files.resize(500, 200)
-        self.list_of_files.move(900, 600)
+        self.list_of_files.move(1000, 600)
         self.list_of_files.itemClicked.connect(self.load_image_from_list)
 
         search_line = QLineEdit(self)
-        search_line.move(850, 200)
+        search_line.move(1000, 200)
         search_line.textChanged[str].connect(self.get_new_search_word)
 
+        self.search_parameter = QComboBox(self)
+        self.search_parameter.addItem('Name')
+        self.search_parameter.addItem('Year of creation')
+        self.search_parameter.move(1000, 170)
+
         button_search = QPushButton('Search', self)
-        button_search.move(870, 230)
+        button_search.move(1000, 230)
         button_search.clicked.connect(self.search)
 
         self.load_image()
@@ -92,11 +98,17 @@ class PhotoAlbum(QWidget):
 
     def search(self):
         new_files = []
-        for file in self.files:
-            temp_file_name = file.replace('\\', '/')
-            if temp_file_name.split('/')[-1].find(self.search_word) != -1:
-                print(file)
-                new_files.append(file)
+        if self.search_parameter.currentText() == 'Name':
+            for file in self.files:
+                temp_file_name = file.replace('\\', '/')
+                if temp_file_name.split('/')[-1].find(self.search_word) != -1:
+                    new_files.append(file)
+        elif self.search_parameter.currentText() == 'Year of creation':
+            for file in self.files:
+                print(self.search_word)
+                print(datetime.fromtimestamp(os.path.getctime(file)).strftime('%Y'))
+                if datetime.fromtimestamp(os.path.getctime(file)).strftime('%Y') == self.search_word:
+                    new_files.append(file)
         self.files = new_files
         self.counter = 0
         if len(self.files) == 0:
@@ -159,7 +171,7 @@ class PhotoAlbum(QWidget):
         for file in os.listdir(directory):
             file = os.path.join(directory, file)
             if os.path.isdir(file):
-                l2 = self.get_all_photo(file, lisss)
+                self.get_all_photo(file, lisss)
             else:
                 file_name, ext = os.path.splitext(file)
                 if not (ext != '.jpg' and ext != '.png' and ext != '.gif') or os.path.isdir(file):
@@ -207,7 +219,8 @@ class PhotoAlbum(QWidget):
         if len(self.files) == 0:
             return
         pixmap = QPixmap(self.files[self.counter])
-        pixmap = pixmap.scaled(pixmap.width() // 2, pixmap.height() // 2)
+        while pixmap.width() > self.label.width() and pixmap.height() > self.label.height():
+            pixmap = pixmap.scaled(pixmap.width() // 2, pixmap.height() // 2)
         self.label.setPixmap(pixmap)
         temp_file_name = self.files[self.counter].replace('\\', '/')
         self.line_name_of_photo.setText(temp_file_name.split('/')[-1])

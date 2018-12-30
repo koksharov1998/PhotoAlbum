@@ -14,9 +14,9 @@ class ThumbnailsWindow(QWidget):
         self.files = files
         self.counter = 0
         self.labels = []
-        self.initUI()
+        self.init()
 
-    def initUI(self):
+    def init(self):
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
         i = -1
@@ -25,10 +25,9 @@ class ThumbnailsWindow(QWidget):
             self.labels.append(QLabel(self))
             label = self.labels[i]
             label.setGeometry(10 + 110 * (i % (self.width // 110)), 10 + 110 * (i // (self.height // 110)), 100, 100)
-            pixmap = QPixmap(file)
-            pixmap = pixmap.scaled(100, 100)
-            label.setPixmap(pixmap)
-            label.clicked.connect(self.delete)
+            pix_map = QPixmap(file)
+            pix_map = pix_map.scaled(100, 100)
+            label.setPixmap(pix_map)
             label.show()
 
     def keyPressEvent(self, e):
